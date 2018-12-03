@@ -130,7 +130,7 @@ export default class {
     })
 
     // 判断是否查询到
-    if (index) {
+    if (index !== null || index !== undefined) {
       deleteData = local.splice(index, 1);
       setLocalStorage(local,this.localName);
       judgeDev(this.isDev, () => {

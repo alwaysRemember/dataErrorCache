@@ -20,7 +20,7 @@ export default class {
 
     // 判断是否有缓存库存在了
     if (!getLocalStorage(this.localName)) {
-      setLocalStorage([]);
+      setLocalStorage([], this.localName);
       judgeDev(this.isDev, () => {
         log('设置缓存库成功')
       });
@@ -34,26 +34,17 @@ export default class {
    */
   reportData(cb, time) {
     let timer = time ? time : new Date().getTime();
-    let local = getLocalStorage();
+    let local = getLocalStorage(this.localName);
     this.getAccordWithList(timer).forEach(item => {
       cb(item.params).then(() => {
-        for (let i = local.length-1; i >= 0; i--) {
-          if (local[i].id === item.id){
-              local.splice(i,1);
-          }
-        }
-        setLocalStorage(local)
+        this.deleteData(item.id);
       }).catch(() => {
         judgeDev(this.isDev, () => {
-          log(`数据上报失败:`,'error');
+          log(`数据上报失败:`, 'error');
           console.log(item);
         })
       })
-      // setLocalStorage(nowArr);
     })
-
-    // console.log(local);
-    // console.log(local)
   }
 
 
@@ -107,7 +98,7 @@ export default class {
     }
 
     // 设置缓存库
-    setLocalStorage(local);
+    getLocalStorage(this.localName)(local);
     judgeDev(this.isDev, () => {
       log(`设置缓存库成功,插入数据为:`);
       console.log(reportData);
@@ -141,7 +132,7 @@ export default class {
     // 判断是否查询到
     if (index) {
       deleteData = local.splice(index, 1);
-      setLocalStorage(local);
+      setLocalStorage(local,this.localName);
       judgeDev(this.isDev, () => {
         log('删除缓存成功：', 'warning');
         console.log(deleteData[0].params);
@@ -160,7 +151,7 @@ export default class {
    * 清空缓存库
    */
   deleteAllData() {
-    setLocalStorage([]);
+    setLocalStorage([],this.localName);
     judgeDev(this.isDev, () => {
       log('缓存库清空成功！')
     });
@@ -202,8 +193,9 @@ function getLocalStorage(localName = DATA_ERROR_CACHE) {
 /**
  * 设置缓存库
  * @param dataList  错误信息
+ * @param localName 缓存库名称
  */
-function setLocalStorage(dataList) {
+function setLocalStorage(dataList, localName = DATA_ERROR_CACHE) {
   if (!dataList) {
     judgeDev(this.isDev, () => {
       log('请设置缓存信息', 'error')
